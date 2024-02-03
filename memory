@@ -4,7 +4,7 @@
 #include "cstddef"
 #include "utility"
 
-namespace vl
+namespace std
 {
 
 template <typename T>

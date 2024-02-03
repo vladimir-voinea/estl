@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace vl 
+namespace std 
 {
 
 template<typename T, T v>

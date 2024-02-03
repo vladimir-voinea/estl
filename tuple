@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-namespace vl
+namespace std
 {
 
 // Forward declaration of the tuple template
