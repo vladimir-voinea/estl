@@ -112,16 +112,16 @@ constexpr auto apply(F&& f, Tuple&& t) {
 
 namespace estd
 {
+    // Base case for the recursion
+    template <typename F, typename T>
+    void apply_to_each(F f, std::tuple<T>& t) {
+        f(t.head); // Apply the function to the last element
+    }
+
     // Helper to apply a function to each element of the tuple
     template <typename F, typename T, typename... Ts>
     void apply_to_each(F f, std::tuple<T, Ts...>& t) {
         f(t.head); // Apply the function to the head
         apply_to_each(f, t.tail); // Recurse into the tail
-    }
-
-    // Base case for the recursion
-    template <typename F, typename T>
-    void apply_to_each(F f, std::tuple<T>& t) {
-        f(t.head); // Apply the function to the last element
     }
 }
