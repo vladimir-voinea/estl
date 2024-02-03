@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stddef.h>
+#include "type_traits"
+#include "utility"
 
 namespace std
 {
@@ -60,17 +62,66 @@ auto& get(tuple<Ts...>& t) {
     return detail::tuple_getter<idx, Ts...>::get(t);
 }
 
-// Helper to apply a function to each element of the tuple
-template <typename F, typename T, typename... Ts>
-void apply_to_each(F f, tuple<T, Ts...>& t) {
-    f(t.head); // Apply the function to the head
-    apply_to_each(f, t.tail); // Recurse into the tail
+template<typename T>
+struct tuple_size; // Primary template
+
+template<typename... Ts>
+struct tuple_size<tuple<Ts...>> { // Specialization for tuple
+    static constexpr size_t value = sizeof...(Ts);
+};
+
+namespace detail {
+
+// Define our own index_sequence
+template<size_t... Is>
+struct index_sequence {};
+
+// Template to generate an index sequence recursively
+template<size_t N, size_t... Is>
+struct make_index_sequence_impl : make_index_sequence_impl<N - 1, N - 1, Is...> {};
+
+// Base case
+template<size_t... Is>
+struct make_index_sequence_impl<0, Is...> {
+    using type = index_sequence<Is...>;
+};
+
+// Public interface to generate index sequence
+template<size_t N>
+using make_index_sequence = typename make_index_sequence_impl<N>::type;
+
+// Forward declaration of the apply_impl function template
+template<typename F, typename Tuple, size_t... I>
+constexpr auto apply_impl(F&& f, Tuple&& t, index_sequence<I...>) {
+    return f(std::get<I>(std::forward<Tuple>(t))...);
 }
 
-// Base case for the recursion
-template <typename F, typename T>
-void apply_to_each(F f, tuple<T>& t) {
-    f(t.head); // Apply the function to the last element
+} // namespace detail
+
+// The public apply function that users will call
+template<typename F, typename Tuple>
+constexpr auto apply(F&& f, Tuple&& t) {
+    return detail::apply_impl(
+        std::forward<F>(f),
+        std::forward<Tuple>(t),
+        detail::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{}
+    );
 }
 
+}
+
+namespace estd
+{
+    // Helper to apply a function to each element of the tuple
+    template <typename F, typename T, typename... Ts>
+    void apply_to_each(F f, std::tuple<T, Ts...>& t) {
+        f(t.head); // Apply the function to the head
+        apply_to_each(f, t.tail); // Recurse into the tail
+    }
+
+    // Base case for the recursion
+    template <typename F, typename T>
+    void apply_to_each(F f, std::tuple<T>& t) {
+        f(t.head); // Apply the function to the last element
+    }
 }
