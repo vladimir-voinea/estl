@@ -10,6 +10,7 @@ namespace std
 
         bool has_value() const { return m_has_value; }
         T value() const { return m_value; }
+        T operator*() const { return value(); }
 
         operator bool() const { return has_value(); }
 
