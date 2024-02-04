@@ -33,35 +33,52 @@ struct tuple<T> {
     constexpr size_t size() const { return 1; }
 };
 
-#include <utility> // For std::forward
-
 namespace detail {
 
-// General template for `get` - handles both const and non-const tuples, as well as lvalue and rvalue references
+// General template for `get` - peels off the first type until the index is 0, for non-const tuples
 template <size_t idx, typename T, typename... Ts>
 struct tuple_getter {
-    template<typename TupleType>
-    static auto& get(TupleType&& t) {
-        // Recursively call `get` on the tail of the tuple, forwarding the tuple
-        return tuple_getter<idx - 1, Ts...>::get(std::forward<TupleType>(t).tail);
+    static auto& get(tuple<T, Ts...>& t) {
+        return tuple_getter<idx - 1, Ts...>::get(t.tail);
     }
 };
 
-// Specialization for `get` when idx is 0 - handles both const and non-const tuples, as well as lvalue and rvalue references
+// Specialization for `get` when idx is 0, for non-const tuples
 template <typename T, typename... Ts>
 struct tuple_getter<0, T, Ts...> {
-    template<typename TupleType>
-    static auto& get(TupleType&& t) {
-        return std::forward<TupleType>(t).head; // Forward the head as the same type (const, non-const, lvalue, rvalue) as the input
+    static T& get(tuple<T, Ts...>& t) {
+        return t.head;
+    }
+};
+
+// General template for `get` - peels off the first type until the index is 0, for const tuples
+template <size_t idx, typename T, typename... Ts>
+struct tuple_getter_const {
+    static auto& get(const tuple<T, Ts...>& t) {
+        return tuple_getter_const<idx - 1, Ts...>::get(t.tail);
+    }
+};
+
+// Specialization for `get` when idx is 0, for const tuples
+template <typename T, typename... Ts>
+struct tuple_getter_const<0, T, Ts...> {
+    static const T& get(const tuple<T, Ts...>& t) {
+        return t.head;
     }
 };
 
 } // namespace detail
 
-// User-facing `get` function template that supports const, non-const, lvalue, and rvalue references
-template <size_t idx, typename... Ts, typename TupleType>
-auto& get(TupleType&& t) {
-    return detail::tuple_getter<idx, Ts...>::get(std::forward<TupleType>(t));
+// User-facing `get` function template for non-const tuples
+template <size_t idx, typename... Ts>
+auto& get(tuple<Ts...>& t) {
+    return detail::tuple_getter<idx, Ts...>::get(t);
+}
+
+// User-facing `get` function template for const tuples
+template <size_t idx, typename... Ts>
+const auto& get(const tuple<Ts...>& t) {
+    return detail::tuple_getter_const<idx, Ts...>::get(t);
 }
 
 
