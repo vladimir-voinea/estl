@@ -41,7 +41,7 @@ namespace detail
 // General template for `get` - peels off the first type until the index is 0
 template <size_t idx, typename T, typename... Ts>
 struct tuple_getter {
-    static auto&& get(tuple<T, Ts...>&& t) {
+    static auto& get(tuple<T, Ts...>& t) {
         // Recursively call `get` on the tail of the tuple
         return tuple_getter<idx - 1, Ts...>::get(t.tail);
     }
@@ -50,7 +50,7 @@ struct tuple_getter {
 // Specialization for `get` when idx is 0 - returns the head of the tuple
 template <typename T, typename... Ts>
 struct tuple_getter<0, T, Ts...> {
-    static T&& get(tuple<T, Ts...>&& t) {
+    static T& get(tuple<T, Ts...>& t) {
         return t.head;
     }
 };
@@ -58,7 +58,7 @@ struct tuple_getter<0, T, Ts...> {
 
 // User-facing `get` function template
 template <size_t idx, typename... Ts>
-auto&& get(tuple<Ts...>&& t) {
+auto& get(tuple<Ts...>& t) {
     return detail::tuple_getter<idx, Ts...>::get(t);
 }
 
