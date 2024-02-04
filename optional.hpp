@@ -11,7 +11,7 @@ namespace std
         bool has_value() const { return m_has_value; }
         T value() const { return m_value; }
 
-        bool operator bool() const { return has_value(); }
+        operator bool() const { return has_value(); }
 
     private:
         bool m_has_value;
