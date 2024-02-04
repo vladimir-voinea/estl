@@ -1,0 +1,20 @@
+#pragma once
+
+namespace std
+{
+    template<typename T>
+    struct optional
+    {
+        optional() : m_has_value(false) {}
+        optional(T value) : m_has_value(true), m_value(value) {}
+
+        bool has_value() const { return m_has_value; }
+        T value() const { return m_value; }
+
+        bool operator bool() const { return has_value(); }
+
+    private:
+        bool m_has_value;
+        T m_value;
+    };
+}
