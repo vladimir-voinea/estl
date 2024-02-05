@@ -27,10 +27,7 @@ struct pair
 };
 
 template<typename T>
-struct remove_reference
-{
-    using type = T;
-};
+struct remove_reference;
 
 template<typename T>
 typename std::remove_reference<T>::type&& move(T&& arg) noexcept {
