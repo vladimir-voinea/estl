@@ -68,6 +68,169 @@ template< class T >
 using remove_reference_t = typename remove_reference<T>::type;
 
 
+namespace detail
+{
+    template<class T>
+    struct type_identity { using type = T; }; // or use std::type_identity (since C++20)
+ 
+    template<class T>
+    auto try_add_pointer(int)
+      -> type_identity<typename std::remove_reference<T>::type*>;  // usual case
+ 
+    template<class T>
+    auto try_add_pointer(...)
+      -> type_identity<T>;  // unusual case (cannot form std::remove_reference<T>::type*)
+} // namespace detail
+ 
+template<class T>
+struct add_pointer : decltype(detail::try_add_pointer<T>(0)) {};
+
+template< class T >
+using add_pointer_t = typename add_pointer<T>::type;
+
+
+template<class T> struct remove_cv { typedef T type; };
+template<class T> struct remove_cv<const T> { typedef T type; };
+template<class T> struct remove_cv<volatile T> { typedef T type; };
+template<class T> struct remove_cv<const volatile T> { typedef T type; };
+ 
+template<class T> struct remove_const { typedef T type; };
+template<class T> struct remove_const<const T> { typedef T type; };
+ 
+template<class T> struct remove_volatile { typedef T type; };
+template<class T> struct remove_volatile<volatile T> { typedef T type; };
+
+template< class T >
+using remove_cv_t = typename remove_cv<T>::type;
+template< class T >
+using remove_const_t = typename remove_const<T>::type;
+template< class T >
+using remove_volatile_t = typename remove_volatile<T>::type;
+
+
+template<bool B, class T, class F>
+struct conditional { using type = T; };
+ 
+template<class T, class F>
+struct conditional<false, T, F> { using type = F; };
+
+template< bool B, class T, class F >
+using conditional_t = typename conditional<B,T,F>::type;
+
+// primary template
+template<class>
+struct is_function : std::false_type {};
+ 
+// specialization for regular functions
+template<class Ret, class... Args>
+struct is_function<Ret(Args...)> : std::true_type {};
+ 
+// specialization for variadic functions such as std::printf
+template<class Ret, class... Args>
+struct is_function<Ret(Args......)> : std::true_type {};
+ 
+// specialization for function types that have cv-qualifiers
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) volatile> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const volatile> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) volatile> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const volatile> : std::true_type {};
+ 
+// specialization for function types that have ref-qualifiers
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) volatile &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const volatile &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) volatile &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const volatile &> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) &&> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const &&> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) volatile &&> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const volatile &&> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) &&> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const &&> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) volatile &&> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const volatile &&> : std::true_type {};
+ 
+// specializations for noexcept versions of all the above (C++17 and later)
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) volatile noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const volatile noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) volatile noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const volatile noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) volatile & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const volatile & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) volatile & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const volatile & noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) && noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const && noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) volatile && noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args...) const volatile && noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) && noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const && noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) volatile && noexcept> : std::true_type {};
+template<class Ret, class... Args>
+struct is_function<Ret(Args......) const volatile && noexcept> : std::true_type {};
+
+template< class T >
+inline constexpr bool is_function_v = is_function<T>::value;
+
+
 template<class T>
 struct decay
 {
@@ -84,6 +247,8 @@ public:
         >::type
     >::type type;
 };
+
+
 
 template< class T >
 using decay_t = typename decay<T>::type;
