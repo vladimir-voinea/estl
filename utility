@@ -26,4 +26,15 @@ struct pair
     TSecond second;
 };
 
+template<typename T>
+struct remove_reference
+{
+    using type = T;
+};
+
+template<typename T>
+typename std::remove_reference<T>::type&& move(T&& arg) noexcept {
+    return static_cast<typename std::remove_reference<T>::type&&>(arg);
+}
+
 }
