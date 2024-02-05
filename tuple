@@ -1,68 +1,82 @@
 #pragma once
 
-#include <stddef.h>
 #include "type_traits"
 #include "utility"
+#include <stddef.h>
 
 namespace std
 {
 
 // Forward declaration of the tuple template
-template <typename... Ts>
-struct tuple;
+template <typename... Ts> struct tuple;
 
 // Tuple specialization for at least one element
-template <typename T, typename... Ts>
-struct tuple<T, Ts...> {
+template <typename T, typename... Ts> struct tuple<T, Ts...>
+{
     T head;
     tuple<Ts...> tail;
 
-    tuple(const T& head, const Ts&... tail) : head(head), tail(tail...) {}
+    tuple(const T &head, const Ts &...tail) : head(head), tail(tail...)
+    {
+    }
 
     // Size of the tuple
-    constexpr size_t size() const { return 1 + tail.size(); }
+    constexpr size_t size() const
+    {
+        return 1 + tail.size();
+    }
 };
 
 // Tuple specialization for the last element
-template <typename T>
-struct tuple<T> {
+template <typename T> struct tuple<T>
+{
     T head;
 
-    tuple(const T& head) : head(head) {}
+    tuple(const T &head) : head(head)
+    {
+    }
 
-    constexpr size_t size() const { return 1; }
+    constexpr size_t size() const
+    {
+        return 1;
+    }
 };
 
-namespace detail {
+namespace detail
+{
 
 // General template for `get` - peels off the first type until the index is 0, for non-const tuples
-template <size_t idx, typename T, typename... Ts>
-struct tuple_getter {
-    static auto& get(tuple<T, Ts...>& t) {
+template <size_t idx, typename T, typename... Ts> struct tuple_getter
+{
+    static auto &get(tuple<T, Ts...> &t)
+    {
         return tuple_getter<idx - 1, Ts...>::get(t.tail);
     }
 };
 
 // Specialization for `get` when idx is 0, for non-const tuples
-template <typename T, typename... Ts>
-struct tuple_getter<0, T, Ts...> {
-    static T& get(tuple<T, Ts...>& t) {
+template <typename T, typename... Ts> struct tuple_getter<0, T, Ts...>
+{
+    static T &get(tuple<T, Ts...> &t)
+    {
         return t.head;
     }
 };
 
 // General template for `get` - peels off the first type until the index is 0, for const tuples
-template <size_t idx, typename T, typename... Ts>
-struct tuple_getter_const {
-    static auto& get(const tuple<T, Ts...>& t) {
+template <size_t idx, typename T, typename... Ts> struct tuple_getter_const
+{
+    static auto &get(const tuple<T, Ts...> &t)
+    {
         return tuple_getter_const<idx - 1, Ts...>::get(t.tail);
     }
 };
 
 // Specialization for `get` when idx is 0, for const tuples
-template <typename T, typename... Ts>
-struct tuple_getter_const<0, T, Ts...> {
-    static const T& get(const tuple<T, Ts...>& t) {
+template <typename T, typename... Ts> struct tuple_getter_const<0, T, Ts...>
+{
+    static const T &get(const tuple<T, Ts...> &t)
+    {
         return t.head;
     }
 };
@@ -70,78 +84,75 @@ struct tuple_getter_const<0, T, Ts...> {
 } // namespace detail
 
 // User-facing `get` function template for non-const tuples
-template <size_t idx, typename... Ts>
-auto& get(tuple<Ts...>& t) {
+template <size_t idx, typename... Ts> auto &get(tuple<Ts...> &t)
+{
     return detail::tuple_getter<idx, Ts...>::get(t);
 }
 
 // User-facing `get` function template for const tuples
-template <size_t idx, typename... Ts>
-const auto& get(const tuple<Ts...>& t) {
+template <size_t idx, typename... Ts> const auto &get(const tuple<Ts...> &t)
+{
     return detail::tuple_getter_const<idx, Ts...>::get(t);
 }
 
+template <typename T> struct tuple_size; // Primary template
 
-template<typename T>
-struct tuple_size; // Primary template
-
-template<typename... Ts>
-struct tuple_size<tuple<Ts...>> { // Specialization for tuple
+template <typename... Ts> struct tuple_size<tuple<Ts...>>
+{ // Specialization for tuple
     static constexpr size_t value = sizeof...(Ts);
 };
 
-namespace detail {
+namespace detail
+{
 
 // Define our own index_sequence
-template<size_t... Is>
-struct index_sequence {};
+template <size_t... Is> struct index_sequence
+{
+};
 
 // Template to generate an index sequence recursively
-template<size_t N, size_t... Is>
-struct make_index_sequence_impl : make_index_sequence_impl<N - 1, N - 1, Is...> {};
+template <size_t N, size_t... Is> struct make_index_sequence_impl : make_index_sequence_impl<N - 1, N - 1, Is...>
+{
+};
 
 // Base case
-template<size_t... Is>
-struct make_index_sequence_impl<0, Is...> {
+template <size_t... Is> struct make_index_sequence_impl<0, Is...>
+{
     using type = index_sequence<Is...>;
 };
 
 // Public interface to generate index sequence
-template<size_t N>
-using make_index_sequence = typename make_index_sequence_impl<N>::type;
+template <size_t N> using make_index_sequence = typename make_index_sequence_impl<N>::type;
 
 // Forward declaration of the apply_impl function template
-template<typename F, typename Tuple, size_t... I>
-constexpr auto apply_impl(F&& f, Tuple&& t, index_sequence<I...>) {
+template <typename F, typename Tuple, size_t... I> constexpr auto apply_impl(F &&f, Tuple &&t, index_sequence<I...>)
+{
     return f(std::get<I>(std::forward<Tuple>(t))...);
 }
 
 } // namespace detail
 
 // The public apply function that users will call
-template<typename F, typename Tuple>
-constexpr auto apply(F&& f, Tuple&& t) {
-    return detail::apply_impl(
-        std::forward<F>(f),
-        std::forward<Tuple>(t),
-        detail::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{}
-    );
+template <typename F, typename Tuple> constexpr auto apply(F &&f, Tuple &&t)
+{
+    return detail::apply_impl(std::forward<F>(f), std::forward<Tuple>(t),
+                              detail::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
 }
 
-}
+} // namespace std
 
 namespace estd
 {
-    // Base case for the recursion
-    template <typename F, typename T>
-    void apply_to_each(F f, std::tuple<T>& t) {
-        f(t.head); // Apply the function to the last element
-    }
-
-    // Helper to apply a function to each element of the tuple
-    template <typename F, typename T, typename... Ts>
-    void apply_to_each(F f, std::tuple<T, Ts...>& t) {
-        f(t.head); // Apply the function to the head
-        apply_to_each(f, t.tail); // Recurse into the tail
-    }
+// Base case for the recursion
+template <typename F, typename T> void apply_to_each(F f, std::tuple<T> &t)
+{
+    f(t.head); // Apply the function to the last element
 }
+
+// Helper to apply a function to each element of the tuple
+template <typename F, typename T, typename... Ts> void apply_to_each(F f, std::tuple<T, Ts...> &t)
+{
+    f(t.head);                // Apply the function to the head
+    apply_to_each(f, t.tail); // Recurse into the tail
+}
+} // namespace estd

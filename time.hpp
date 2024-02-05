@@ -1,7 +1,7 @@
 #pragma once
 
-#include <type_traits>
 #include <stddef.h>
+#include <type_traits>
 
 namespace estd
 {
@@ -31,8 +31,7 @@ struct hours
     long unsigned int value;
 };
 
-template<typename To, typename From>
-To time_cast(From from)
+template <typename To, typename From> To time_cast(From from)
 {
     if constexpr (std::is_same<To, microseconds>::value)
     {
@@ -105,7 +104,7 @@ To time_cast(From from)
     }
     else if constexpr (std::is_same<To, minutes>::value)
     {
-        if constexpr (std::is_same<From , microseconds>::value)
+        if constexpr (std::is_same<From, microseconds>::value)
         {
             return {from.value / 60000000};
         }
@@ -125,7 +124,6 @@ To time_cast(From from)
         {
             return {from.value * 60};
         }
-
     }
     else if constexpr (std::is_same<To, hours>::value)
     {
@@ -152,4 +150,4 @@ To time_cast(From from)
     }
     return {};
 }
-}
+} // namespace estd
