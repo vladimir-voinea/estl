@@ -1,0 +1,68 @@
+#pragma once
+
+#include <type_traits> // For std::forward
+
+namespace std {
+
+template<typename>
+class function; // Primary template.
+
+template<typename R, typename... Args>
+class function<R(Args...)> {
+    struct base_holder {
+        virtual ~base_holder() = default;
+        virtual R invoke(Args...) = 0;
+    };
+
+    template<typename F>
+    struct holder : public base_holder {
+        F func;
+
+        holder(F func) : func(std::move(func)) {}
+
+        R invoke(Args... args) override {
+            return func(std::forward<Args>(args)...);
+        }
+    };
+
+    base_holder* func_holder = nullptr;
+
+public:
+function() noexcept = default;
+
+    template<typename F>
+    function(F func) : func_holder(new holder<F>(std::forward<F>(func))) {}
+
+    ~function() {
+        delete func_holder;
+    }
+
+    function(const function&) = delete;
+    function& operator=(const function&) = delete;
+
+    function(function&& other) noexcept : func_holder(other.func_holder) {
+        other.func_holder = nullptr;
+    }
+
+    function& operator=(function&& other) noexcept {
+        if (this != &other) {
+            delete func_holder;
+            func_holder = other.func_holder;
+            other.func_holder = nullptr;
+        }
+        return *this;
+    }
+
+    R operator()(Args... args) const {
+        if (func_holder) {
+            return func_holder->invoke(std::forward<Args>(args)...);
+        }
+        // Optional: handle the case where func_holder is null (e.g., throw an exception or return a default value if R is not void)
+    }
+
+    explicit operator bool() const noexcept {
+        return func_holder != nullptr;
+    }
+};
+
+}
