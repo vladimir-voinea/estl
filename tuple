@@ -4,7 +4,7 @@
 #include "utility"
 #include <stddef.h>
 
-#ifdef ARDUINO
+#ifndef PICO
 
 namespace std
 {
