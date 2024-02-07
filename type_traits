@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ARDUINO
+
 #include <cstddef>
 
 namespace std
@@ -341,3 +343,5 @@ template <class T> struct decay
 template <class T> using decay_t = typename decay<T>::type;
 
 } // namespace std
+
+#endif

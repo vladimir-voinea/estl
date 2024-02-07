@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ARDUINO
+
 #include "type_traits"
 
 namespace std
@@ -30,3 +32,5 @@ template <typename T> typename std::remove_reference<T>::type &&move(T &&arg) no
 }
 
 } // namespace std
+
+#endif

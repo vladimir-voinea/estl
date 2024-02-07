@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ARDUINO
+
 namespace std
 {
 template <typename T> struct optional
@@ -34,3 +36,5 @@ template <typename T> struct optional
     T m_value;
 };
 } // namespace std
+
+#endif

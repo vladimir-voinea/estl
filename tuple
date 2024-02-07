@@ -4,6 +4,8 @@
 #include "utility"
 #include <stddef.h>
 
+#ifdef ARDUINO
+
 namespace std
 {
 
@@ -156,3 +158,5 @@ template <typename F, typename T, typename... Ts> void apply_to_each(F f, std::t
     apply_to_each(f, t.tail); // Recurse into the tail
 }
 } // namespace estd
+
+#endif // ARDUINO

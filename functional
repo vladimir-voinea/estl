@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ARDUINO
+
 #include <type_traits>
 #include <utility>
 
@@ -80,3 +82,5 @@ template <typename R, typename... Args> class function<R(Args...)>
 };
 
 } // namespace std
+
+#endif

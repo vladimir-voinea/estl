@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ARDUINO
+
 #include "cstddef"
 #include "type_traits"
 #include "utility"
@@ -143,3 +145,5 @@ template <class T> std::enable_if_t<detail::is_unbounded_array_v<T>, std::unique
 template <class T, class... Args> std::enable_if_t<detail::is_bounded_array_v<T>> make_unique(Args &&...) = delete;
 
 } // namespace std
+
+#endif
